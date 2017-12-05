@@ -18,7 +18,7 @@ NUM_ITER = 10000
 SPARK_SUBMIT = "/Users/manthanthakar/spark-2.2.0/bin/spark-submit"
 SCALAC = "/Users/manthanthakar/scala-2.11.8/bin/scalac"
 
-all: build run
+all: run
 
 build_reg:
 	(time -p $(SCALAC) -d ${CLASSES_PATH} \
@@ -65,6 +65,8 @@ run_diff: setup run_reg run_plu
 	done
 	@echo "End diff to validate outputs"
 
+run: setup run_diff
+
 setup: clean
 	@mkdir -p ${CLASSES_PATH}
 	@mkdir -p ${ARTIFACTS_PATH}
@@ -74,5 +76,5 @@ clean:
 
 make_subset:
 	cd input &&  \
-	head -10001 med/similar_artists.csv > similar_artists.csv && \
+	head -100001 all/similar_artists.csv > similar_artists.csv && \
 	gzip -f similar_artists.csv

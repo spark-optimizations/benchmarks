@@ -48,6 +48,9 @@ colnames(dfRun) <- c("Type", "Tot", "Used", "TimeMean", "TimeMedian")
 dfRun$Tot <- as.integer(dfRun$Tot)
 dfRun$Used <- as.integer(dfRun$Used)
 dfRun <- subset(dfRun, Tot!=0)
+
+dfReg <- subset(dfRun, Type=="reg")
+dfPlu <- subset(dfRun, Type=="plugin")
 ```
 ```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}
 ggplot(data=dfRun, aes(x=reorder(as.factor(Tot), Tot), y=reorder(as.factor(Used), Used), fill=TimeMedian)) +
@@ -57,8 +60,16 @@ ggplot(data=dfRun, aes(x=reorder(as.factor(Tot), Tot), y=reorder(as.factor(Used)
     theme_bw()
 ```
 
-    scale_fill_gradient(low="grey", high="black", name="Time (sec)") +
+    
+```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}
+dfAll <- merge(x = dfReg, y = dfPlu, by = c("Tot", "Used"), all = FALSE)
 
+ggplot(data=dfAll, aes(x=reorder(as.factor(Tot), Tot), y=reorder(as.factor(Used), Used), fill=TimeMedian.y - TimeMedian.x)) +
+    geom_tile(width=1, height=1) + 
+    scale_fill_gradient(low="white", high="red", name="Time (sec)") +
+    labs(x="Total # Columns", y="Used # Columns", title="title") + 
+    theme_bw()
+```
 
 
 
