@@ -4,7 +4,7 @@ import java.io.File
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-import org.so.benchmark.Util.Util
+import org.so.benchmark.util.Util
 
 /**
   * @author shabbir.ahussain
