@@ -1,0 +1,23 @@
+package org.so.benchmark.util
+
+import org.apache.spark.SparkContext
+import org.apache.spark.sql.SparkSession
+
+/**
+  * @author Tirthraj
+  */
+object SparkUtil {
+  def createSparkSession(): SparkSession = {
+    SparkSession
+      .builder()
+      .appName("Broadcast Join Test Suite")
+      .config("spark.some.config.option", "some-value")
+      .getOrCreate()
+  }
+
+  def createSparkContext(ss: SparkSession): SparkContext = {
+    val sc = ss.sparkContext
+    sc.setLogLevel("ERROR")
+    sc
+  }
+}
