@@ -71,3 +71,11 @@ make_subset:
 	cd input &&  \
 	head -100001 all/similar_artists.csv > similar_artists.csv && \
 	gzip -f similar_artists.csv
+
+
+test:
+	$(SCALAC) -d ${CLASSES_PATH} \
+    		-cp "./${LIB_PATH}/*" \
+    		-Xplugin:${PLUGIN_JAR_NAME} \
+    		src/main/scala/org/so/benchmark/util/*.scala \
+    		src/main/scala/org/so/benchmark/plugin/*.scala
