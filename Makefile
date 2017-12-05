@@ -12,7 +12,7 @@ OUTPUT_PATH=${OUT_ROOT}/run_results/
 
 METRICS_FILE=results/stats/timings.csv
 
-NUM_ITER = 10000
+NUM_ITER = 100
 
 # Path to spark-submit executable
 SPARK_SUBMIT = "/Users/manthanthakar/spark-2.2.0/bin/spark-submit"
@@ -38,13 +38,6 @@ build_plu:
          ) 2>&1 | grep "real" | sed 's/^/plugin	/' >> ${METRICS_FILE}
 	jar cf ${JAR_NAME} \
     	-C ${CLASSES_PATH} .
-run:
-	$(SCALAC) -d ${CLASSES_PATH} \
-     		-cp "./${LIB_PATH}/*" \
-     		-Xplugin:${PLUGIN_JAR_NAME} \
-     		-Xprint:JoinOptimizer \
-     		src/main/scala/org/so/benchmark/util/*.scala \
-     		src/main/scala/org/so/benchmark/plugin/*.scala
 
 run_reg: build_reg
 	$(SPARK_SUBMIT) \
