@@ -8,48 +8,38 @@ LIB_PATH=lib-min
 
 TEST_FILE=src/test/scala/org/so/plugin/BroadcastJoinSuite.scala
 
-INPUT_PATH=input/big/
-OUTPUT_PATH=output/big/
+INPUT_PATH=input/
+OUTPUT_PATH=output/results/
 STATS_PATH=output/stats/
+DO_LEFT=Y
+
+ITERATIONS=2
 
 all: build run
 
 build: setup
-	mkdir -p "out/classes/main/resources/"
-	mkdir -p ${STATS_PATH}
-	${SCALA_BIN_PATH}scalac -cp "./${LIB_PATH}/*" -Ylog-classpath \
-		-d out/classes \
+	@mkdir -p "${CLASSES_PATH}/main/resources/"
+	@mkdir -p ${STATS_PATH}
+	@${SCALA_BIN_PATH}scalac -cp "./${LIB_PATH}/*" \
+		-d ${CLASSES_PATH} \
 		src/main/scala/org/so/benchmark/util/*.scala \
 		src/main/scala/org/so/benchmark/bj/*.scala
-	jar cvf ${JAR_NAME} \
-		-C out/classes/ .
-
-build-jar: setup
-	mkdir -p "out/classes/main/resources/"
-	${SCALA_BIN_PATH}scalac -cp "./${LIB_PATH}/*" \
-    		-d out/classes \
-    		src/main/scala/org/neu/so/bj/*.scala
-	jar cvf ${JAR_NAME} \
-		-C out/classes/ .
+	@jar cf ${JAR_NAME} \
+		-C ${CLASSES_PATH} .
 
 run:
-	${SPARK_PATH}spark-submit \
+	@${SPARK_PATH}spark-submit \
+		--jars "./${LIB_PATH}/broadcast-join.jar" \
 		--master local --driver-memory 6g \
-		--conf "spark.driver.extraJavaOptions=-Dlog4j.configuration=log4j.properties" \
-		--conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=log4j.properties" \
-		--class org.neu.so.bj.BroadcastJoinSuite ${JAR_NAME} ${INPUT_PATH} ${OUTPUT_PATH}
-
-debug: build
-	scalac -Xplugin:${JAR_NAME} -Xprint:all ${TEST_FILE}
-
-debug-browse: build
-	scalac -Xplugin:${JAR_NAME} -Ybrowse:all ${TEST_FILE}
+		--class org.so.benchmark.bj.BroadcastJoinSuite ${JAR_NAME} \
+		${INPUT_PATH} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${DO_LEFT}
 
 setup: clean
-	mkdir -p ${CLASSES_PATH}
-	mkdir -p ${ARTIFACTS_PATH}
+	@rm -rf ${OUTPUT_PATH}
+	@mkdir -p ${CLASSES_PATH}
+	@mkdir -p ${ARTIFACTS_PATH}
 
 clean:
-	rm -rf ${OUT_ROOT}
-	rm -rf ${OUTPUT_PATH}
-	rm -rf ${STATS_PATH}
+	@rm -rf ${OUT_ROOT}
+	@rm -rf ${OUTPUT_PATH}
+	@rm -rf ${STATS_PATH}

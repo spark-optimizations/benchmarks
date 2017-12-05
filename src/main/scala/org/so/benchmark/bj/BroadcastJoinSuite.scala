@@ -18,19 +18,52 @@ object BroadcastJoinSuite {
 
   def main(args: Array[ String ]): Unit = {
     val testData = fetchTestData(args(0) + "similar_artists.csv.gz")
-    val smallRDD = extractSmallRDD(testData)
-    broadcastJoinExec(testData, smallRDD, args(1) + "bj_output")
-//    dataframeJoinExec(testData, smallRDD, args(1) + "df_output")
-    normalJoinExec(testData, smallRDD, args(1) + "normal_rdd_output")
-    broadcastJoinExec(testData, testData, args(1) + "big_broadcast_output")
-    normalJoinExec(testData, testData, args(1) + "big_normal_output")
+    val smallRDD = extractSmallRDD(testData, 2000)
+    if(args(4).equals("Y"))
+      leftSmallTestSuite(args, testData, smallRDD)
+    else
+      rightSmallTestSuite(args, testData, smallRDD)
   }
 
-  def extractSmallRDD[ K: ClassTag, V: ClassTag ](rdd: RDD[ (K, V) ]): RDD[ (K, V) ] = {
-    sc.parallelize(rdd.take(200))
+  def leftSmallTestSuite[K:ClassTag, V:ClassTag](args: Array[String],
+                                                 testData: RDD[(K, V)],
+                                                 smallRDD: RDD[(K, V)]): Unit = {
+    for (i <- 1 to args(3).toInt) {
+      println("--- " + i + " ---")
+      println("\t--- left small: BJ ---")
+      broadcastJoinExec(smallRDD, testData, args(1) + "ls_bj_" + i, args(2) + "ls_bj_exec", args(2) + "ls_bj_sizeEst")
+      println("\t--- left small: shuffle ---")
+      normalJoinExec(smallRDD, testData, args(1) + "ls_shuffle_" + i, args(2) + "ls_shuffle_exec")
+      println("\t--- big: BJ ---")
+      broadcastJoinExec(testData, testData, args(1) + "big_bj_l_" + i,
+        args(2) + "big_bj_exec_l", args(2) + "big_bj_sizeEst_l")
+      println("\t--- big: shuffle ---")
+      normalJoinExec(testData, testData, args(1) + "big_shuffle_l_" + i, args(2) + "big_shuffle_exec_l")
+    }
   }
 
-  def fetchTestData[ K: ClassTag, V: ClassTag ](inputFile: String): RDD[ (String, String) ] = {
+  def rightSmallTestSuite[K:ClassTag, V:ClassTag](args: Array[String],
+                                                  testData: RDD[(K, V)],
+                                                  smallRDD: RDD[(K, V)]): Unit = {
+    for (i <- 1 to args(3).toInt) {
+      println("--- " + i + " ---")
+      println("\t--- right small: BJ ---")
+      broadcastJoinExec(testData, smallRDD, args(1) + "rs_bj_" + i, args(2) + "rs_bj_exec", args(2) + "rs_bj_sizeEst")
+      println("\t--- right small: shuffle ---")
+      normalJoinExec(testData, smallRDD, args(1) + "rs_shuffle_" + i, args(2) + "rs_shuffle_exec")
+      println("\t--- big: BJ ---")
+      broadcastJoinExec(testData, testData, args(1) + "big_bj_r_" + i,
+        args(2) + "big_bj_exec_r", args(2) + "big_bj_sizeEst_r")
+      println("\t--- big: shuffle ---")
+      normalJoinExec(testData, testData, args(1) + "big_shuffle_r_" + i, args(2) + "big_shuffle_exec_r")
+    }
+  }
+
+  def extractSmallRDD[ K: ClassTag, V: ClassTag ](rdd: RDD[ (K, V) ], numOfRows: Int): RDD[ (K, V) ] = {
+    sc.parallelize(rdd.take(numOfRows))
+  }
+
+  def fetchTestData[ K: ClassTag, V: ClassTag ](inputFile: String): RDD[ (String, AnyRef) ] = {
     sc.textFile(inputFile)
       .mapPartitionsWithIndex {
         case (0, iter) => iter.drop(1)
@@ -40,36 +73,27 @@ object BroadcastJoinSuite {
   }
 
   def broadcastJoinExec[ K: ClassTag, V: ClassTag ](rdd: RDD[ (K, V) ], smallRDD: RDD[ (K, V) ],
-                                                    outputPath: String): Unit = {
+                                                    outputPath: String,
+                                                    statsPath: String,
+                                                    sizeEstStatsPath: String): Unit = {
     val bj = new BroadcastJoin(sc)
+    bj.statsPath = sizeEstStatsPath
     TestUtil.timeBlock(
       bj.join(rdd, smallRDD, new RDDSizeEstimator {})
         .coalesce(1, shuffle = false)
         .saveAsTextFile(outputPath),
-      "BJ: "
+      statsPath
     )
   }
 
-//  def dataframeJoinExec(rdd: RDD[ (String, String) ], smallRDD: RDD[ (String, String) ],
-//                        outputPath: String): Unit = {
-//    import ss.implicits._
-//    val df = rdd.toDF("1", "2")
-//    val smallDF = smallRDD.toDF("3", "4")
-//    TestUtil.timeBlock(
-//      df.join(smallDF, df.col("1") === smallDF.col("3"))
-//        .write
-//        .save(outputPath),
-//      "DF: "
-//    )
-//  }
-
   def normalJoinExec[ K: ClassTag, V: ClassTag ](rdd: RDD[ (K, V) ], smallRDD: RDD[ (K, V) ],
-                                                 outputPath: String): Unit = {
+                                                 outputPath: String,
+                                                 statsPath: String): Unit = {
     TestUtil.timeBlock(
       rdd.join(smallRDD)
         .coalesce(1, shuffle = false)
         .saveAsTextFile(outputPath),
-      "Shuffled Join: "
+      statsPath
     )
   }
 }

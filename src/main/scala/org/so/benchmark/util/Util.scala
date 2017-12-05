@@ -1,4 +1,4 @@
-package org.so.benchmark.Util
+package org.so.benchmark.util
 
 import java.io.{File, FileOutputStream, PrintStream}
 import java.text.SimpleDateFormat
