@@ -12,12 +12,16 @@ OUTPUT_PATH=${OUT_ROOT}/run_results/
 
 METRICS_FILE=results/stats/timings.csv
 
-NUM_ITER=1000
+NUM_ITER = 10000
+
+# Path to spark-submit executable
+SPARK_SUBMIT = "/Users/manthanthakar/spark-2.2.0/bin/spark-submit"
+SCALAC = "/Users/manthanthakar/scala-2.11.8/bin/scalac"
 
 all: build run
 
 build_reg:
-	(time -p scalac -d ${CLASSES_PATH} \
+	(time -p $(SCALAC) -d ${CLASSES_PATH} \
 		-cp "./${LIB_PATH}/*" \
 		src/main/scala/org/so/benchmark/util/*.scala \
 		src/main/scala/org/so/benchmark/plugin/*.scala \
@@ -26,7 +30,7 @@ build_reg:
     	-C ${CLASSES_PATH} .
 
 build_plu:
-	(time  -p scalac -d ${CLASSES_PATH} \
+	(time  -p $(SCALAC) -d ${CLASSES_PATH} \
 		-cp "./${LIB_PATH}/*" \
 		-Xplugin:${PLUGIN_JAR_NAME} \
 		src/main/scala/org/so/benchmark/util/*.scala \
@@ -34,15 +38,22 @@ build_plu:
          ) 2>&1 | grep "real" | sed 's/^/plugin	/' >> ${METRICS_FILE}
 	jar cf ${JAR_NAME} \
     	-C ${CLASSES_PATH} .
+run:
+	$(SCALAC) -d ${CLASSES_PATH} \
+     		-cp "./${LIB_PATH}/*" \
+     		-Xplugin:${PLUGIN_JAR_NAME} \
+     		-Xprint:JoinOptimizer \
+     		src/main/scala/org/so/benchmark/util/*.scala \
+     		src/main/scala/org/so/benchmark/plugin/*.scala
 
 run_reg: build_reg
-	spark-submit \
+	$(SPARK_SUBMIT) \
 	 	--master local --driver-memory 5g \
     	--class org.so.benchmark.plugin.Main ${JAR_NAME} \
     	${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_reg ${NUM_ITER}
 
 run_plu: build_plu
-	spark-submit \
+	$(SPARK_SUBMIT) \
 	 	--master local --driver-memory 5g \
     	--class org.so.benchmark.plugin.Main ${JAR_NAME}  \
           ${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_plugin ${NUM_ITER}
