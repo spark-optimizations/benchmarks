@@ -11,8 +11,10 @@ TEST_FILE=src/test/scala/org/so/plugin/BroadcastJoinSuite.scala
 INPUT_PATH=input/
 OUTPUT_PATH=output/results/
 STATS_PATH=output/stats/
-DO_LEFT=Y
 
+INPUT_FILE_1=${INPUT_PATH}/similar_artists.csv.gz
+
+DO_LEFT=Y
 ITERATIONS=2
 
 all: build run
@@ -32,7 +34,7 @@ run:
 		--jars "./${LIB_PATH}/broadcast-join.jar" \
 		--master local --driver-memory 6g \
 		--class org.so.benchmark.bj.BroadcastJoinSuite ${JAR_NAME} \
-		${INPUT_PATH} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${DO_LEFT}
+		${INPUT_FILE_1} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${DO_LEFT}
 
 setup: clean
 	@rm -rf ${OUTPUT_PATH}
