@@ -2,16 +2,17 @@ OUT_ROOT=out
 CLASSES_PATH=${OUT_ROOT}/classes
 ARTIFACTS_PATH=${OUT_ROOT}/artifacts
 
-PLUGIN_JAR_NAME=${ARTIFACTS_PATH}/build-plugin.jar
 JAR_NAME=${ARTIFACTS_PATH}/test.jar
 
 LIB_PATH=lib-min
+PLUGIN_JAR_NAME=${LIB_PATH}/build-plugin.jar
+
 INPUT_PATH=input/
 OUTPUT_PATH=${OUT_ROOT}/run_results/
 
 METRICS_FILE=results/stats/timings.csv
 
-NUM_ITER=100
+NUM_ITER=1000
 
 all: build run
 
@@ -47,9 +48,11 @@ run_plu: build_plu
           ${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_plugin ${NUM_ITER}
 
 run_diff: setup run_reg run_plu
+	@echo "Running diff to validate outputs"
 	@for f in $$(ls ${OUTPUT_PATH});do \
 		diff -a -q ${OUTPUT_PATH}$$f/run_plugin/part-00000 ${OUTPUT_PATH}$$f/run_reg/part-00000; \
 	done
+	@echo "End diff to validate outputs"
 
 setup: clean
 	@mkdir -p ${CLASSES_PATH}
@@ -57,7 +60,6 @@ setup: clean
 
 clean:
 	@rm -rf ${OUT_ROOT}
-
 
 make_subset:
 	cd input &&  \
