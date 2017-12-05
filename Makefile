@@ -12,11 +12,11 @@ OUTPUT_PATH=${OUT_ROOT}/run_results/
 
 METRICS_FILE=results/stats/timings.csv
 
-NUM_ITER = 100
+NUM_ITER = 500
 
 # Path to spark-submit executable
-SPARK_SUBMIT = "/Users/manthanthakar/spark-2.2.0/bin/spark-submit"
-SCALAC = "/Users/manthanthakar/scala-2.11.8/bin/scalac"
+SPARK_SUBMIT = "spark-submit"
+SCALAC = "scalac"
 
 all: run
 
