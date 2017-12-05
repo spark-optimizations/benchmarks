@@ -1,0 +1,65 @@
+OUT_ROOT=out
+CLASSES_PATH=${OUT_ROOT}/classes
+ARTIFACTS_PATH=${OUT_ROOT}/artifacts
+
+PLUGIN_JAR_NAME=${ARTIFACTS_PATH}/build-plugin.jar
+JAR_NAME=${ARTIFACTS_PATH}/test.jar
+
+LIB_PATH=lib-min
+INPUT_PATH=input/
+OUTPUT_PATH=${OUT_ROOT}/run_results/
+
+METRICS_FILE=results/stats/timings.csv
+
+NUM_ITER=100
+
+all: build run
+
+build_reg:
+	(time -p scalac -d ${CLASSES_PATH} \
+		-cp "./${LIB_PATH}/*" \
+		src/main/scala/org/so/benchmark/util/*.scala \
+		src/main/scala/org/so/benchmark/plugin/*.scala \
+		 ) 2>&1 | grep "real" | sed 's/^/reg	/' >> ${METRICS_FILE}
+	jar cf ${JAR_NAME} \
+    	-C ${CLASSES_PATH} .
+
+build_plu:
+	(time  -p scalac -d ${CLASSES_PATH} \
+		-cp "./${LIB_PATH}/*" \
+		-Xplugin:${PLUGIN_JAR_NAME} \
+		src/main/scala/org/so/benchmark/util/*.scala \
+		src/main/scala/org/so/benchmark/plugin/*.scala \
+         ) 2>&1 | grep "real" | sed 's/^/plugin	/' >> ${METRICS_FILE}
+	jar cf ${JAR_NAME} \
+    	-C ${CLASSES_PATH} .
+
+run_reg: build_reg
+	spark-submit \
+	 	--master local --driver-memory 5g \
+    	--class org.so.benchmark.plugin.Main ${JAR_NAME} \
+    	${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_reg ${NUM_ITER}
+
+run_plu: build_plu
+	spark-submit \
+	 	--master local --driver-memory 5g \
+    	--class org.so.benchmark.plugin.Main ${JAR_NAME}  \
+          ${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_plugin ${NUM_ITER}
+
+run_diff: setup run_reg run_plu
+	@for f in $$(ls ${OUTPUT_PATH});do \
+		diff -a -q ${OUTPUT_PATH}$$f/run_plugin/part-00000 ${OUTPUT_PATH}$$f/run_reg/part-00000; \
+	done
+
+setup: clean
+	@mkdir -p ${CLASSES_PATH}
+	@mkdir -p ${ARTIFACTS_PATH}
+
+clean:
+	@rm -rf ${OUT_ROOT}
+
+
+make_subset:
+	cd input &&  \
+	head -10001 med/similar_artists.csv > similar_artists.csv && \
+	gzip -f similar_artists.csv
