@@ -73,7 +73,7 @@ dfAll <- merge(x = dfReg, y = dfPlu, by = c("Tot", "Used"), all = FALSE)
 
 ggplot(data=dfAll, aes(x=reorder(as.factor(Tot), Tot), y=reorder(as.factor(Used), Used), fill=TimeMedian.y - TimeMedian.x)) +
     geom_tile(width=1, height=1) + 
-    scale_fill_gradient(low="white", high="red", name="Time (sec)") +
+    scale_fill_gradient(low="green", high="red", name="Time (sec)") +
     labs(x="Total # Columns", y="Used # Columns", title="title") + 
     theme_bw()
 ```
