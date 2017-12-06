@@ -23,35 +23,41 @@ class ShuffleStats() {
 
   /** Gets shuffle bytes from the previous call.
     *
+    * @param appID is the application master id.
+    * @param yarnIP is the application master URL.
     * @return Number of shuffle Bytes from spark endpoint.
     */
-  def shuffleBytes(appID: String): Long = {
-    if (port == 0) port = findStupidSparkPort(appID)
+  def shuffleBytes(appID: String, yarnIP: String): Long = {
+    if (port == 0) port = findStupidSparkPort(yarnIP, appID)
 
     val appIDL = appID.hashCode
-    var sBytes: Long =  - oldShufMap.getOrElse(appIDL, 0l)
-    val response = getStatsFromSparkUI(appID)
+    var sBytes: Long =  0
+    var currentBytes: Long = 0
+    val response = getStatsFromSparkUI(yarnIP, appID)
     try {
       val stats = parse(response)
       val d = stats.extract[List[StageShuffleStats]]
-      sBytes += d.map(_.shuffleWriteBytes).sum
+      currentBytes = d.map(_.shuffleWriteBytes).sum
+      sBytes = currentBytes - oldShufMap.getOrElse(appIDL, 0l)
     } catch {
       case e: Exception => println(e)
     }
-    oldShufMap.put(appIDL, sBytes)
+    oldShufMap.put(appIDL, currentBytes)
     sBytes
   }
 
 
   /** Finds stupid sparkUI port.
     *
+    * @param appID is the application master id.
+    * @param yarnIP is the application master URL.
     * @return return the port number if spark application is found on it otherwise returns 0 after 30 attempts.
     */
-  def findStupidSparkPort(appID: String) : Int = {
+  def findStupidSparkPort(yarnIP: String ,appID: String) : Int = {
     for (i <- 4040 to 4070){
       try {
         port = i
-        getStatsFromSparkUI(appID)
+        getStatsFromSparkUI(yarnIP, appID)
         return i
       } catch { case _:Exception => println("Trying port:" + i + " ...")}
     }
@@ -60,11 +66,13 @@ class ShuffleStats() {
 
   /** Gets Json response from SparkUI.
     *
+    * @param appID is the application master id.
+    * @param yarnIP is the application master URL.
     * @throws Exception when application is not found on the URI.
     * @return String of the response.
     */
   @throws[Exception]
-  def getStatsFromSparkUI(appID: String) : String = {
-    fromURL("http://localhost:" + port + "/api/v1/applications/" + appID + "/stages").mkString
+  def getStatsFromSparkUI(yarnIP: String, appID: String) : String = {
+    fromURL("http://" + yarnIP + ":" + port + "/api/v1/applications/" + appID + "/stages").mkString
   }
 }
