@@ -41,12 +41,14 @@ build_plu:
 
 run_reg: build_reg
 	$(SPARK_SUBMIT) \
+		--packages net.liftweb:lift-json_2.11:3.1.1 \
 	 	--master local --driver-memory 5g \
     	--class org.so.benchmark.plugin.Main ${JAR_NAME} \
     	${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_reg ${NUM_ITER}
 
 run_plu: build_plu
 	$(SPARK_SUBMIT) \
+		--packages net.liftweb:lift-json_2.11:3.1.1 \
 	 	--master local --driver-memory 5g \
     	--class org.so.benchmark.plugin.Main ${JAR_NAME}  \
           ${INPUT_PATH} ${OUTPUT_PATH} ${METRICS_FILE} run_plugin ${NUM_ITER}
