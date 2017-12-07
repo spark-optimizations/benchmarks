@@ -12,10 +12,12 @@ INPUT_PATH=input/
 OUTPUT_PATH=output/results/
 STATS_PATH=output/stats/
 
-INPUT_FILE=${INPUT_PATH}/similar_artists_big.csv.gz
+SMALL_INPUT_FILE=${INPUT_PATH}/similar_artists_small.csv.gz
+BIG_INPUT_FILE=${INPUT_PATH}/similar_artists_big.csv.gz
 
-DO_LEFT=ALL
-ITERATIONS=20
+INPUT_FILE=${SMALL_INPUT_FILE}
+IS_SMALL_CONST=N
+ITERATIONS=1
 
 all: build run
 
@@ -35,7 +37,7 @@ run:
 		--packages net.liftweb:lift-json_2.11:3.1.1 \
 		--master local --driver-memory 6g \
 		--class org.so.benchmark.bj.BroadcastJoinSuite ${JAR_NAME} \
-		${INPUT_FILE} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${DO_LEFT}
+		${INPUT_FILE} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${IS_SMALL_CONST}
 
 setup: clean
 	@rm -rf ${OUTPUT_PATH}

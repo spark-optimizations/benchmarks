@@ -28,10 +28,6 @@ raw_to_plot_data_exec <- function(d, runType) {
   plot_data$RunType <- runTypeCol
   return(plot_data)
 }
-raw_to_plot_data_sizeEst <- function(d, left_bj_data, right_bj_data) {
-  counts <- exec_data$Count
-  
-}
 
 plot_both_time <- function(plot_d, xLabel, yLabel) {
   titleCol <- rep("title", count(plot_d))
@@ -69,45 +65,10 @@ plot_both_delta <- function(plot_d, xLabel, yLabel) {
           labs(x = xLabel, y = yLabel) -> p
   return(p)
 }
-
-plot_time <- function(plot_d, title, xLabel, yLabel) {
-  titleCol <- rep(title, count(plot_d))
-  plot_d$Title <- titleCol
-  ggplot(data = plot_d, aes(x = Size, y = TimeMedian, color = RunType, shape = RunType)) +
-          geom_point(size = 2.5) +
-          geom_line() +
-          scale_x_continuous(breaks=plot_d$Size) +
-          theme_bw() +
-          theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                axis.text.x= element_text(angle = 90),
-                axis.text=element_text(size=6),
-                axis.title=element_text(size=8,face="bold")) + 
-          scale_shape_manual(values=c(16,15)) + 
-          facet_grid(Title ~ ., shrink = TRUE, switch = "y") +
-          labs(x = xLabel, y = yLabel) -> p
-  return(p)
-}
-
-plot_delta <- function(plot_d, title, xLabel, yLabel) {
-  titleCol <- rep(title, count(plot_d))
-  plot_d$Title <- titleCol
-  ggplot(data = plot_d, aes(x = Size, y = TimeMedian)) +
-          geom_col() +
-          scale_x_continuous(breaks=plot_d$Size) +
-          coord_cartesian(ylim = c(0, 100)) +
-          theme_bw() +
-          theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-                axis.text.x=element_text(angle = 90),
-                axis.text=element_text(size=8),
-                axis.title=element_text(size=8,face="bold")) + 
-          facet_grid(Title ~ ., switch = "y") +
-          labs(x = xLabel, y = yLabel) -> p
-  return(p)
-}
 ```
 
 ```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}
-data_path <- 'output/stats/'
+data_path <- 'test/stats/'
 
 ls_bj_exec <- read.csv(paste0(data_path, 'ls_bj_exec'), sep = ";", header = FALSE)
 ls_bj_exec <- raw_to_plot_data_exec(ls_bj_exec, "LS:BJ")
@@ -124,32 +85,18 @@ rs_shuffle_exec <- raw_to_plot_data_exec(rs_shuffle_exec, "RS:Shuffle")
 
 ```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F, fig.align="center", fig.width=10, fig.height=3}
 l_plot_d <- union(ls_bj_exec, ls_shuffle_exec)
-# leftCol <- rep("Left RDD Small", count(l_plot_d))
-# l_plot_d$smallRDD <- leftCol
-# l_execPlot <- plot_time(l_plot_d, "JOIN: Left RDD Small", "Size (MB)", "Time (seconds)")
 
 
 r_plot_d <- union(rs_bj_exec, rs_shuffle_exec)
-# rightCol <- rep("Right RDD Small", count(r_plot_d))
-# r_plot_d$smallRDD <- rightCol
-# r_execPlot <- plot_time(r_plot_d, "JOIN: Right RDD Small", "Size (MB)", "Time (seconds)")
 
 plot_both_time_d <- union(l_plot_d, r_plot_d)
 bothTimePlot <- plot_both_time(plot_both_time_d, "Big RDD Size (MB)", "Time (seconds)")
 
 l_delta <- subset(ls_bj_exec, select = -c(TimeMean, Count))
 l_delta$TimeMedian <- ((ls_shuffle_exec$TimeMedian - ls_bj_exec$TimeMedian) / ls_shuffle_exec$TimeMedian)*100
-# lCol <- rep("Left RDD Small", count(l_delta))
-# l_delta$smallRDD <- lCol
-# l_deltaPlot <- plot_delta(l_delta, "Broadcast Join vs Shuffle Join: Left RDD Small", 
-#                           "Size (MB)", "Time Improvement (%)")
 
 r_delta <- subset(rs_bj_exec, select = -c(TimeMean, Count))
 r_delta$TimeMedian <- ((rs_shuffle_exec$TimeMedian - rs_bj_exec$TimeMedian) / rs_shuffle_exec$TimeMedian)*100
-# rCol <- rep("Right RDD Small", count(r_delta))
-# r_delta$smallRDD <- rCol
-# r_deltaPlot <- plot_delta(r_delta, "Broadcast Join vs Shuffle Join: Right RDD Small", 
-#                           "Size (MB)", "Time Improvement (%)")
 
 plot_both_delta_d <- union(l_delta, r_delta)
 bothDeltaPlot <- plot_both_delta(plot_both_delta_d, "Big RDD Size (MB)", "BroadcastJoin Time Improvement (%)")
@@ -158,30 +105,6 @@ bothDeltaPlot <- plot_both_delta(plot_both_delta_d, "Big RDD Size (MB)", "Broadc
 grid.arrange(bothTimePlot, bothDeltaPlot, ncol=2)
 ```
 
-
-```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}
-
-
-# ls_bj_sizeEst <- read.csv('test/stats/rs_bj_sizeEst', header = FALSE, col.names = c('ls_bj_sizeEst'))
-# ls_bj_sizeEst$ID <- seq.int(nrow(ls_bj_sizeEst))
-
-# rs_bj_sizeEst <- read.csv('test/stats/rs_bj_sizeEst', header = FALSE, col.names = c('rs_bj_sizeEst', 'size'))
-# rs_bj_sizeEst$ID <- seq.int(nrow(rs_bj_sizeEst))
-
-# big_bj_exec_r <- read.csv('test/stats/big_bj_exec_r', header = FALSE, col.names = c('big_bj_exec_r'))
-# big_bj_exec_r$ID <- seq.int(nrow(big_bj_exec_r))
-# 
-# big_bj_sizeEst_r <- read.csv('test/stats/big_bj_sizeEst_r', header = FALSE, col.names = c('big_bj_sizeEst_r'))
-# big_bj_sizeEst_r$ID <- seq.int(nrow(big_bj_sizeEst_r))
-# 
-# big_shuffle_exec_r <- read.csv('test/stats/big_shuffle_exec_r', header = FALSE, col.names = # c('big_shuffle_exec_r'))
-# big_shuffle_exec_r$ID <- seq.int(nrow(big_shuffle_exec_r))
-
-# time_dataframes <- list(ls_bj_exec, ls_shuffle_exec, rs_bj_exec, rs_shuffle_exec)
-# time_to_plot <- Reduce(function(x, y) merge(x, y, all=TRUE, by="ID"), time_dataframes)
-# 
-# ggplot(data = time_to_plot, aes(x = reorder(as.factor())))
-```
 
 ```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}
 

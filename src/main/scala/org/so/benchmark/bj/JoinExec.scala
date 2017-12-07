@@ -15,6 +15,7 @@ class JoinExec(sc: SparkContext) {
                                                     outputPath: String,
                                                     sizeEstStatsPath: String): Float = {
     val bj = new BroadcastJoin(sc)
+    bj.autoBroadcastJoinThreshold = config.autoBroadcastJoinThreshold
     bj.statsPath = sizeEstStatsPath
     TestUtil.timeBlock(
       bj.join(rdd1, rdd2, new RDDSizeEstimator {})
@@ -31,17 +32,4 @@ class JoinExec(sc: SparkContext) {
         .saveAsTextFile(outputPath)
     )
   }
-
-//  def dfJoinExec[ K: ClassTag, V: ClassTag ](rdd1: RDD[ (K, V) ], rdd2: RDD[ (K, V) ],
-//                                             outputPath: String, statsPath: String): Unit = {
-//    import ss.implicits._
-//    val df = rdd1.toDF("1", "2")
-//    val smallDF = rdd2.toDF("3", "4")
-//    TestUtil.timeBlock(
-//      df.join(smallDF, df.col("1") === smallDF.col("3"))
-//        .write
-//        .save(outputPath),
-//      statsPath
-//    )
-//  }
 }

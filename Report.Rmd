@@ -33,7 +33,7 @@ library("dplyr")
 
 ```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}
 data <- read.csv('results/stats/timings.csv', sep="\t", header = FALSE)
-data <- data[, c("V1", "V3")]
+data <- data[c("V1", "V3")]
 ```
 
 ```{r cache=TRUE,echo=F, results = 'asis', warning=F, message=F}

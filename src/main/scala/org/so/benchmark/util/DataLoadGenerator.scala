@@ -7,10 +7,18 @@ import scala.reflect.ClassTag
 
 class DataLoadGenerator(sc: SparkContext) {
 
-  def createLoad[ K: ClassTag ](inputFile: String, loadPower: Int): RDD[ (Long, Array[ Long ]) ] = {
-    // total rows: 1048576
-    val rdd = sc.textFile(inputFile)
-    explodeRDD(baseRDD(rdd), loadPower)
+  def createLoad[ K: ClassTag ](inputFile: String, loadPower: Int, isLoadSmall: Boolean = false)
+  : RDD[ (Long, Array[ Long ]) ] = {
+    if(isLoadSmall) {
+      // total rows: 4096
+      val rdd = sc.textFile(inputFile)
+      explodeRDD(baseRDD(rdd), loadPower)
+    }
+    else {
+      // total rows: 1048576
+      val rdd = sc.textFile(inputFile)
+      explodeRDD(baseRDD(rdd), loadPower)
+    }
   }
 
   def explodeRDD(rdd: RDD[ (Long, Array[ Long ]) ], pow: Int): RDD[ (Long, Array[ Long ]) ] = {
@@ -23,12 +31,12 @@ class DataLoadGenerator(sc: SparkContext) {
   }
 
   private[ this ] def baseRDD(baseRDD: RDD[ String ]): RDD[ (Long, Array[ Long ]) ] = {
-    // 1048576 * 128 bytes = 128 mb
     baseRDD.map {
       line =>
-        val key = line.split(";")(0).take(15)
-        // 16 long values = 16 * 8 = 128 bytes
-        (key.hashCode.toLong, key.toArray.map(_.hashCode.toLong))
+        val k = line.split(";")(0)
+        val k256 = k.concat(k.charAt(0).toString)
+        // 256 bytes
+        (k256.hashCode.toLong, k256.toArray.map(_.hashCode.toLong))
       }
   }
 }
