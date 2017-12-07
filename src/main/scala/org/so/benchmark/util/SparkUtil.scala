@@ -7,6 +7,11 @@ import org.apache.spark.sql.SparkSession
   * @author Tirthraj
   */
 object SparkUtil {
+  /**
+    * Creae a Spark Session with app name and configuration.
+    *
+    * @return created spark session
+    */
   def createSparkSession(): SparkSession = {
     SparkSession
       .builder()
@@ -15,6 +20,12 @@ object SparkUtil {
       .getOrCreate()
   }
 
+  /**
+    * Create a spark context from given spark context
+    *
+    * @param ss spark session which is used to get spark context
+    * @return created spark context
+    */
   def createSparkContext(ss: SparkSession): SparkContext = {
     val sc = ss.sparkContext
     sc.setLogLevel("ERROR")

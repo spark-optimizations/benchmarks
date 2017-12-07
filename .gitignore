@@ -75,3 +75,5 @@ vignettes/*.pdf
 hs_err_pid*
 
 out/
+/.Rhistory
+/.RData
