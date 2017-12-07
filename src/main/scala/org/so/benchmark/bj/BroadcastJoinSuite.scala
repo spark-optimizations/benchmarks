@@ -40,8 +40,7 @@ object BroadcastJoinSuite {
 
       for (iteration <- 1 to args(3).toInt) {
         println("--- " + iteration + " ---")
-        rightSmallTestSuite(args(1) + "vs_", args(2) + "vs_", bigRDD, smallRDD, i, iteration)
-        bothBigTestSuite(args(1) + "vs_", args(2) + "vs_", bigRDD, i, iteration)
+        rightSmallTestSuite(args(1), args(1) + "vs_", args(2) + "vs_", bigRDD, smallRDD, i, iteration)
       }
     }
   }
@@ -57,13 +56,14 @@ object BroadcastJoinSuite {
 
       for (iteration <- 1 to args(3).toInt) {
         println("--- " + iteration + " ---")
-        rightSmallTestSuite(args(1) + "vb_", args(2) + "vb_", bigRDD, smallRDD, i, iteration)
-        bothBigTestSuite(args(1) + "vb_", args(2) + "vb_", bigRDD, i, iteration)
+        rightSmallTestSuite(args(1), args(1) + "vb_", args(2) + "vb_", bigRDD, smallRDD, i, iteration)
+        bothBigTestSuite(args(1), args(1) + "vb_", args(2) + "vb_", bigRDD, i, iteration)
       }
     }
   }
 
-  def bothBigTestSuite[ K: ClassTag, V: ClassTag ](outputPath: String,
+  def bothBigTestSuite[ K: ClassTag, V: ClassTag ](outputDir: String,
+                                                   outputPath: String,
                                                    statsPath: String,
                                                    rdd: RDD[ (K, V) ],
                                                    sizePower: Int,
@@ -81,10 +81,11 @@ object BroadcastJoinSuite {
     TestUtil.dumpStat(iteration + ";" + t2 + ";" + sizePower, statsPath + "big_shuffle_exec")
     TestUtil.dumpStat(iteration + ";" + sb + ";" + sizePower, statsPath + "big_shuffle_bytes")
 
-    Util.deleteRecursively(new File(outputPath))
+    Util.deleteRecursively(new File(outputDir))
   }
 
-  def rightSmallTestSuite[ K: ClassTag, V: ClassTag ](outputPath: String,
+  def rightSmallTestSuite[ K: ClassTag, V: ClassTag ](outputDir: String,
+                                                      outputPath: String,
                                                       statsPath: String,
                                                       bigRDD: RDD[ (K, V) ],
                                                       smallRDD: RDD[ (K, V) ],
@@ -103,14 +104,15 @@ object BroadcastJoinSuite {
     TestUtil.dumpStat(iteration + ";" + t2 + ";" + sizePower, statsPath + "rs_shuffle_exec")
     TestUtil.dumpStat(iteration + ";" + sb + ";" + sizePower, statsPath + "rs_shuffle_bytes")
 
-    Util.deleteRecursively(new File(outputPath))
+    Util.deleteRecursively(new File(outputDir))
   }
 
   def extractSmallRDD[ K: ClassTag, V: ClassTag ](rdd: RDD[ (K, V) ], numOfRows: Int): RDD[ (K, V) ] = {
     sc.parallelize(rdd.take(numOfRows))
   }
 
-  def leftSmallTestSuite[ K: ClassTag, V: ClassTag ](outputPath: String,
+  def leftSmallTestSuite[ K: ClassTag, V: ClassTag ](outputDir: String,
+                                                     outputPath: String,
                                                      statsPath: String,
                                                      bigRDD: RDD[ (K, V) ],
                                                      smallRDD: RDD[ (K, V) ],
@@ -130,7 +132,7 @@ object BroadcastJoinSuite {
     TestUtil.dumpStat(iteration + ";" + t2 + ";" + sizePower, statsPath + "ls_shuffle_exec")
     TestUtil.dumpStat(iteration + ";" + sb + ";" + sizePower, statsPath + "ls_shuffle_bytes")
 
-    Util.deleteRecursively(new File(outputPath))
+    Util.deleteRecursively(new File(outputDir))
   }
 
   def fetchBigRDD[ K: ClassTag, V: ClassTag ](inputFile: String): RDD[ (String, AnyRef) ] = {
