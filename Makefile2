@@ -17,7 +17,7 @@ BIG_INPUT_FILE=${INPUT_PATH}/similar_artists_big.csv.gz
 
 INPUT_FILE=${SMALL_INPUT_FILE}
 IS_SMALL_CONST=N
-ITERATIONS=1
+ITERATIONS=5
 
 all: build run
 

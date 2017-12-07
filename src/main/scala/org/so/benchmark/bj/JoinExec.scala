@@ -19,8 +19,7 @@ class JoinExec(sc: SparkContext) {
     bj.statsPath = sizeEstStatsPath
     TestUtil.timeBlock(
       bj.join(rdd1, rdd2, new RDDSizeEstimator {})
-        .coalesce(1, shuffle = false)
-        .saveAsTextFile(outputPath)
+        .take(1)
     )
   }
 
@@ -28,8 +27,7 @@ class JoinExec(sc: SparkContext) {
                                                   outputPath: String): Float = {
     TestUtil.timeBlock(
       rdd1.join(rdd2)
-        .coalesce(1, shuffle = false)
-        .saveAsTextFile(outputPath)
+        .take(1)
     )
   }
 }

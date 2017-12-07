@@ -22,17 +22,18 @@ object BroadcastJoinSuite {
       variableBigRDDTS(args)
     else if("N".equals(args(4)))
       variableSmallRDDTS(args)
-    else
+    else {
       variableSmallRDDTS(args)
       variableBigRDDTS(args)
+    }
   }
 
   def variableSmallRDDTS(args: Array[ String ]): Unit = {
     val dg: DataLoadGenerator = new DataLoadGenerator(sc)
     // 2^9 * 1 mb iterations = 512 mb load
     val bigRDD = dg.createLoad(args(0), 10, isLoadSmall = true)
-    // 2^0 to 2^8 * 2 mb iterations
-    for (i <- 1 to 9) {
+    // 2^2 to 2^8 * 2 mb iterations
+    for (i <- 3 to 9) {
       println("** " + i + " **")
       val mulFactor = (4096 * Math.pow(2, i)).toInt
       config.autoBroadcastJoinThreshold = mulFactor * 256
@@ -80,8 +81,6 @@ object BroadcastJoinSuite {
     val sb = shuffStats.shuffleBytes(sc.applicationId, "localhost")
     TestUtil.dumpStat(iteration + ";" + t2 + ";" + sizePower, statsPath + "big_shuffle_exec")
     TestUtil.dumpStat(iteration + ";" + sb + ";" + sizePower, statsPath + "big_shuffle_bytes")
-
-    Util.deleteRecursively(new File(outputDir))
   }
 
   def rightSmallTestSuite[ K: ClassTag, V: ClassTag ](outputDir: String,
@@ -103,8 +102,6 @@ object BroadcastJoinSuite {
     val sb = shuffStats.shuffleBytes(sc.applicationId, "localhost")
     TestUtil.dumpStat(iteration + ";" + t2 + ";" + sizePower, statsPath + "rs_shuffle_exec")
     TestUtil.dumpStat(iteration + ";" + sb + ";" + sizePower, statsPath + "rs_shuffle_bytes")
-
-    Util.deleteRecursively(new File(outputDir))
   }
 
   def extractSmallRDD[ K: ClassTag, V: ClassTag ](rdd: RDD[ (K, V) ], numOfRows: Int): RDD[ (K, V) ] = {
@@ -131,8 +128,6 @@ object BroadcastJoinSuite {
     val sb = shuffStats.shuffleBytes(sc.applicationId, "localhost")
     TestUtil.dumpStat(iteration + ";" + t2 + ";" + sizePower, statsPath + "ls_shuffle_exec")
     TestUtil.dumpStat(iteration + ";" + sb + ";" + sizePower, statsPath + "ls_shuffle_bytes")
-
-    Util.deleteRecursively(new File(outputDir))
   }
 
   def fetchBigRDD[ K: ClassTag, V: ClassTag ](inputFile: String): RDD[ (String, AnyRef) ] = {
