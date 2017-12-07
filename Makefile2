@@ -12,10 +12,10 @@ INPUT_PATH=input/
 OUTPUT_PATH=output/results/
 STATS_PATH=output/stats/
 
-INPUT_FILE_1=${INPUT_PATH}/similar_artists.csv.gz
+INPUT_FILE=${INPUT_PATH}/similar_artists_big.csv.gz
 
-DO_LEFT=Y
-ITERATIONS=2
+DO_LEFT=ALL
+ITERATIONS=20
 
 all: build run
 
@@ -32,9 +32,10 @@ build: setup
 run:
 	@${SPARK_PATH}spark-submit \
 		--jars "./${LIB_PATH}/broadcast-join.jar" \
+		--packages net.liftweb:lift-json_2.11:3.1.1 \
 		--master local --driver-memory 6g \
 		--class org.so.benchmark.bj.BroadcastJoinSuite ${JAR_NAME} \
-		${INPUT_FILE_1} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${DO_LEFT}
+		${INPUT_FILE} ${OUTPUT_PATH} ${STATS_PATH} ${ITERATIONS} ${DO_LEFT}
 
 setup: clean
 	@rm -rf ${OUTPUT_PATH}
